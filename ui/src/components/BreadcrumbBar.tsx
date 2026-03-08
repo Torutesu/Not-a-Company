@@ -2,6 +2,7 @@ import { Link } from "@/lib/router";
 import { Menu } from "lucide-react";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useSidebar } from "../context/SidebarContext";
+import { useLocale } from "../context/LocaleContext";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -16,6 +17,7 @@ import { Fragment } from "react";
 export function BreadcrumbBar() {
   const { breadcrumbs } = useBreadcrumbs();
   const { toggleSidebar, isMobile } = useSidebar();
+  const { translateText, t } = useLocale();
 
   if (breadcrumbs.length === 0) return null;
 
@@ -25,7 +27,7 @@ export function BreadcrumbBar() {
       size="icon-sm"
       className="mr-2 shrink-0"
       onClick={toggleSidebar}
-      aria-label="Open sidebar"
+      aria-label={t("layout.openSidebar")}
     >
       <Menu className="h-5 w-5" />
     </Button>
@@ -34,10 +36,10 @@ export function BreadcrumbBar() {
   // Single breadcrumb = page title (uppercase)
   if (breadcrumbs.length === 1) {
     return (
-      <div className="border-b border-border px-4 md:px-6 h-12 shrink-0 flex items-center min-w-0 overflow-hidden">
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 md:px-6 h-14 shrink-0 flex items-center min-w-0 overflow-hidden">
         {menuButton}
         <h1 className="text-sm font-semibold uppercase tracking-wider truncate">
-          {breadcrumbs[0].label}
+          {translateText(breadcrumbs[0].label)}
         </h1>
       </div>
     );
@@ -45,7 +47,7 @@ export function BreadcrumbBar() {
 
   // Multiple breadcrumbs = breadcrumb trail
   return (
-    <div className="border-b border-border px-4 md:px-6 h-12 shrink-0 flex items-center min-w-0 overflow-hidden">
+    <div className="sticky top-0 z-10 bg-background border-b border-border px-4 md:px-6 h-14 shrink-0 flex items-center min-w-0 overflow-hidden">
       {menuButton}
       <Breadcrumb className="min-w-0 overflow-hidden">
         <BreadcrumbList className="flex-nowrap">
@@ -56,10 +58,10 @@ export function BreadcrumbBar() {
                 {i > 0 && <BreadcrumbSeparator />}
                 <BreadcrumbItem className={isLast ? "min-w-0" : "shrink-0"}>
                   {isLast || !crumb.href ? (
-                    <BreadcrumbPage className="truncate">{crumb.label}</BreadcrumbPage>
+                    <BreadcrumbPage className="truncate">{translateText(crumb.label)}</BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
-                      <Link to={crumb.href}>{crumb.label}</Link>
+                      <Link to={crumb.href}>{translateText(crumb.label)}</Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>

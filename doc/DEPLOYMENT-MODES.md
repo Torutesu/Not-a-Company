@@ -5,7 +5,7 @@ Date: 2026-02-23
 
 ## 1. Purpose
 
-Paperclip supports two runtime modes:
+Not a Company supports two runtime modes:
 
 1. `local_trusted`
 2. `authenticated`
@@ -90,7 +90,7 @@ This is required because user assignment paths validate active membership for `a
 
 ## 7. Local Trusted -> Authenticated Claim Flow
 
-When running `authenticated` mode, if the only instance admin is `local-board`, Paperclip emits a startup warning with a one-time high-entropy claim URL.
+When running `authenticated` mode, if the only instance admin is `local-board`, Not a Company emits a startup warning with a one-time high-entropy claim URL.
 
 - URL format: `/board-claim/<token>?code=<code>`
 - intended use: signed-in human claims board ownership

@@ -69,7 +69,7 @@ pnpm paperclipai run
 
 ## Docker Quickstart (No local Node install)
 
-Build and run Paperclip in Docker:
+Build and run Not a Company in Docker:
 
 ```sh
 docker build -t paperclip-local .
@@ -118,7 +118,7 @@ pnpm paperclipai configure --section storage
 
 ## Default Agent Workspaces
 
-When a local agent run has no resolved project/session workspace, Paperclip falls back to an agent home workspace under the instance root:
+When a local agent run has no resolved project/session workspace, Not a Company falls back to an agent home workspace under the instance root:
 
 - `~/.paperclip/instances/default/workspaces/<agent-id>`
 
@@ -153,7 +153,7 @@ If you set `DATABASE_URL`, the server will use that instead of embedded PostgreS
 
 ## Automatic DB Backups
 
-Paperclip can run automatic DB backups on a timer. Defaults:
+Not a Company can run automatic DB backups on a timer. Defaults:
 
 - enabled
 - every 60 minutes
@@ -225,7 +225,7 @@ Default behavior:
 
 ## CLI Client Operations
 
-Paperclip CLI now includes client-side control-plane commands in addition to setup commands.
+Not a Company CLI now includes client-side control-plane commands in addition to setup commands.
 
 Quick examples:
 
@@ -258,7 +258,7 @@ Agent-oriented invite onboarding now exposes machine-readable API docs:
 - `GET /api/invites/:token/onboarding` returns onboarding manifest details (registration endpoint, claim endpoint template, skill install hints).
 - `GET /api/invites/:token/onboarding.txt` returns a plain-text onboarding doc intended for both human operators and agents (llm.txt-style handoff), including optional inviter message and suggested network host candidates.
 - `GET /api/skills/index` lists available skill documents.
-- `GET /api/skills/paperclip` returns the Paperclip heartbeat skill markdown.
+- `GET /api/skills/paperclip` returns the Not a Company heartbeat skill markdown.
 
 ## OpenClaw Join Smoke Test
 
@@ -311,6 +311,6 @@ State behavior for this smoke script:
 
 Networking behavior for this smoke script:
 
-- auto-detects and prints a Paperclip host URL reachable from inside OpenClaw Docker
+- auto-detects and prints a Not a Company host URL reachable from inside OpenClaw Docker
 - default container-side host alias is `host.docker.internal` (override with `PAPERCLIP_HOST_FROM_CONTAINER` / `PAPERCLIP_HOST_PORT`)
-- if Paperclip rejects container hostnames in authenticated/private mode, allow `host.docker.internal` via `pnpm paperclipai allowed-hostname host.docker.internal` and restart Paperclip
+- if Not a Company rejects container hostnames in authenticated/private mode, allow `host.docker.internal` via `pnpm paperclipai allowed-hostname host.docker.internal` and restart Not a Company

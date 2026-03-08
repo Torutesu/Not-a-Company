@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type UIEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, Moon, Sun } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { Outlet, useLocation, useNavigate, useParams } from "@/lib/router";
 import { CompanyRail } from "./CompanyRail";
 import { Sidebar } from "./Sidebar";
@@ -18,27 +18,25 @@ import { useDialog } from "../context/DialogContext";
 import { usePanel } from "../context/PanelContext";
 import { useCompany } from "../context/CompanyContext";
 import { useSidebar } from "../context/SidebarContext";
-import { useTheme } from "../context/ThemeContext";
+import { useLocale } from "../context/LocaleContext";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useCompanyPageMemory } from "../hooks/useCompanyPageMemory";
 import { healthApi } from "../api/health";
 import { queryKeys } from "../lib/queryKeys";
 import { cn } from "../lib/utils";
-import { Button } from "@/components/ui/button";
 
 export function Layout() {
   const { sidebarOpen, setSidebarOpen, toggleSidebar, isMobile } = useSidebar();
   const { openNewIssue, openOnboarding } = useDialog();
   const { togglePanelVisible } = usePanel();
   const { companies, loading: companiesLoading, selectedCompanyId, setSelectedCompanyId } = useCompany();
-  const { theme, toggleTheme } = useTheme();
+  const { t } = useLocale();
   const { companyPrefix } = useParams<{ companyPrefix: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const onboardingTriggered = useRef(false);
   const lastMainScrollTop = useRef(0);
   const [mobileNavVisible, setMobileNavVisible] = useState(true);
-  const nextTheme = theme === "dark" ? "light" : "dark";
   const { data: health } = useQuery({
     queryKey: queryKeys.health,
     queryFn: () => healthApi.get(),
@@ -189,7 +187,7 @@ export function Layout() {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[200] focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        Skip to Main Content
+        {t("layout.skipToMainContent")}
       </a>
       {/* Mobile backdrop */}
       {isMobile && sidebarOpen && (
@@ -197,7 +195,7 @@ export function Layout() {
           type="button"
           className="fixed inset-0 z-40 bg-black/50"
           onClick={() => setSidebarOpen(false)}
-          aria-label="Close sidebar"
+          aria-label={t("layout.closeSidebar")}
         />
       )}
 
@@ -217,21 +215,10 @@ export function Layout() {
             <div className="flex items-center gap-1">
               <SidebarNavItem
                 to="/docs"
-                label="Documentation"
+                label={t("layout.documentation")}
                 icon={BookOpen}
                 className="flex-1 min-w-0"
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="text-muted-foreground shrink-0"
-                onClick={toggleTheme}
-                aria-label={`Switch to ${nextTheme} mode`}
-                title={`Switch to ${nextTheme} mode`}
-              >
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
             </div>
           </div>
         </div>
@@ -252,21 +239,10 @@ export function Layout() {
             <div className="flex items-center gap-1">
               <SidebarNavItem
                 to="/docs"
-                label="Documentation"
+                label={t("layout.documentation")}
                 icon={BookOpen}
                 className="flex-1 min-w-0"
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="text-muted-foreground shrink-0"
-                onClick={toggleTheme}
-                aria-label={`Switch to ${nextTheme} mode`}
-                title={`Switch to ${nextTheme} mode`}
-              >
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
             </div>
           </div>
         </div>

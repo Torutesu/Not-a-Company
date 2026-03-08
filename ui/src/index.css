@@ -45,6 +45,43 @@
 :root {
   color-scheme: light;
   --radius: 0;
+
+  /* ── Brand ────────────────────────────────────── */
+  --brand-primary: #1738BD;
+
+  /* ── Status color families ────────────────────── */
+  --status-green-bg:   oklch(0.962 0.044 145);
+  --status-green-fg:   oklch(0.45  0.15  145);
+  --status-cyan-bg:    oklch(0.956 0.045 195);
+  --status-cyan-fg:    oklch(0.44  0.11  195);
+  --status-orange-bg:  oklch(0.954 0.038 65);
+  --status-orange-fg:  oklch(0.50  0.18  55);
+  --status-yellow-bg:  oklch(0.973 0.071 97);
+  --status-yellow-fg:  oklch(0.50  0.13  85);
+  --status-red-bg:     oklch(0.936 0.032 20);
+  --status-red-fg:     oklch(0.46  0.21  25);
+  --status-violet-bg:  oklch(0.943 0.029 300);
+  --status-violet-fg:  oklch(0.44  0.25  292);
+  --status-blue-bg:    oklch(0.932 0.032 255);
+  --status-blue-fg:    oklch(0.44  0.24  264);
+  --status-amber-bg:   oklch(0.962 0.059 90);
+  --status-amber-fg:   oklch(0.50  0.16  72);
+
+  /* ── Indicator dots ───────────────────────────── */
+  --dot-running:  oklch(0.789 0.154 211); /* cyan-400  */
+  --dot-active:   oklch(0.792 0.209 152); /* green-400 */
+  --dot-paused:   oklch(0.852 0.199 92);  /* yellow-400 */
+  --dot-error:    oklch(0.704 0.191 22);  /* red-400   */
+  --dot-neutral:  oklch(0.707 0     0);   /* neutral-400 */
+  --dot-amber:    oklch(0.828 0.189 84);  /* amber-400 */
+  --dot-info:     oklch(0.707 0.165 255); /* blue-400  */
+
+  /* ── Priority ─────────────────────────────────── */
+  --priority-critical: oklch(0.505 0.213 27);  /* red-600    */
+  --priority-high:     oklch(0.553 0.195 38);  /* orange-600 */
+  --priority-medium:   oklch(0.554 0.135 66);  /* yellow-600 */
+  --priority-low:      oklch(0.488 0.243 264); /* blue-600   */
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -80,6 +117,30 @@
 }
 
 .dark {
+  /* ── Status color families (dark) ─────────────── */
+  --status-green-bg:   oklch(0.22 0.05 145 / 0.5);
+  --status-green-fg:   oklch(0.82 0.13 145);
+  --status-cyan-bg:    oklch(0.22 0.04 195 / 0.5);
+  --status-cyan-fg:    oklch(0.82 0.11 195);
+  --status-orange-bg:  oklch(0.25 0.06 55  / 0.5);
+  --status-orange-fg:  oklch(0.82 0.15 55);
+  --status-yellow-bg:  oklch(0.26 0.07 90  / 0.5);
+  --status-yellow-fg:  oklch(0.88 0.17 92);
+  --status-red-bg:     oklch(0.22 0.07 25  / 0.5);
+  --status-red-fg:     oklch(0.80 0.17 25);
+  --status-violet-bg:  oklch(0.22 0.07 295 / 0.5);
+  --status-violet-fg:  oklch(0.82 0.20 295);
+  --status-blue-bg:    oklch(0.22 0.07 255 / 0.5);
+  --status-blue-fg:    oklch(0.82 0.17 255);
+  --status-amber-bg:   oklch(0.26 0.07 80  / 0.5);
+  --status-amber-fg:   oklch(0.85 0.18 80);
+
+  /* ── Priority (brighter in dark) ──────────────── */
+  --priority-critical: oklch(0.704 0.191 22);  /* red-400    */
+  --priority-high:     oklch(0.750 0.180 45);  /* orange-400 */
+  --priority-medium:   oklch(0.852 0.199 92);  /* yellow-400 */
+  --priority-low:      oklch(0.707 0.165 255); /* blue-400   */
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -124,6 +185,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'DM Sans', 'Noto Sans JP', sans-serif;
     height: 100%;
     overflow: hidden;
   }
@@ -385,7 +447,7 @@
 }
 
 .paperclip-mdxeditor-content code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.84em;
 }
 
@@ -408,7 +470,7 @@
 }
 
 .prose code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.84em;
 }
 

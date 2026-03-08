@@ -11,6 +11,7 @@ import { SidebarProvider } from "./context/SidebarContext";
 import { DialogProvider } from "./context/DialogContext";
 import { ToastProvider } from "./context/ToastContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { LocaleProvider } from "./context/LocaleContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "@mdxeditor/editor/style.css";
 import "./index.css";
@@ -34,25 +35,27 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <CompanyProvider>
-          <ToastProvider>
-            <LiveUpdatesProvider>
-              <BrowserRouter>
-                <TooltipProvider>
-                  <BreadcrumbProvider>
-                    <SidebarProvider>
-                      <PanelProvider>
-                        <DialogProvider>
-                          <App />
-                        </DialogProvider>
-                      </PanelProvider>
-                    </SidebarProvider>
-                  </BreadcrumbProvider>
-                </TooltipProvider>
-              </BrowserRouter>
-            </LiveUpdatesProvider>
-          </ToastProvider>
-        </CompanyProvider>
+        <LocaleProvider>
+          <CompanyProvider>
+            <ToastProvider>
+              <LiveUpdatesProvider>
+                <BrowserRouter>
+                  <TooltipProvider>
+                    <BreadcrumbProvider>
+                      <SidebarProvider>
+                        <PanelProvider>
+                          <DialogProvider>
+                            <App />
+                          </DialogProvider>
+                        </PanelProvider>
+                      </SidebarProvider>
+                    </BreadcrumbProvider>
+                  </TooltipProvider>
+                </BrowserRouter>
+              </LiveUpdatesProvider>
+            </ToastProvider>
+          </CompanyProvider>
+        </LocaleProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>

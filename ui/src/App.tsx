@@ -31,15 +31,18 @@ import { InviteLandingPage } from "./pages/InviteLanding";
 import { queryKeys } from "./lib/queryKeys";
 import { useCompany } from "./context/CompanyContext";
 import { useDialog } from "./context/DialogContext";
+import { useLocale } from "./context/LocaleContext";
+import { GlobalPreferences } from "./components/GlobalPreferences";
 
 function BootstrapPendingPage() {
+  const { t } = useLocale();
+
   return (
     <div className="mx-auto max-w-xl py-10">
       <div className="rounded-lg border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold">Instance setup required</h1>
+        <h1 className="text-xl font-semibold">{t("app.bootstrapRequiredTitle")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          No instance admin exists yet. Run this command in your Paperclip environment to generate
-          the first admin invite URL:
+          {t("app.bootstrapRequiredDetail")}
         </p>
         <pre className="mt-4 overflow-x-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
 {`pnpm paperclipai auth bootstrap-ceo`}
@@ -50,6 +53,7 @@ function BootstrapPendingPage() {
 }
 
 function CloudAccessGate() {
+  const { t } = useLocale();
   const location = useLocation();
   const healthQuery = useQuery({
     queryKey: queryKeys.health,
@@ -66,13 +70,13 @@ function CloudAccessGate() {
   });
 
   if (healthQuery.isLoading || (isAuthenticatedMode && sessionQuery.isLoading)) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("common.loading")}</div>;
   }
 
   if (healthQuery.error) {
     return (
       <div className="mx-auto max-w-xl py-10 text-sm text-destructive">
-        {healthQuery.error instanceof Error ? healthQuery.error.message : "Failed to load app state"}
+        {healthQuery.error instanceof Error ? healthQuery.error.message : t("app.failedToLoad")}
       </div>
     );
   }
@@ -135,11 +139,12 @@ function boardRoutes() {
 }
 
 function CompanyRootRedirect() {
+  const { t } = useLocale();
   const { companies, selectedCompany, loading } = useCompany();
   const { onboardingOpen } = useDialog();
 
   if (loading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("common.loading")}</div>;
   }
 
   // Keep the first-run onboarding mounted until it completes.
@@ -156,11 +161,12 @@ function CompanyRootRedirect() {
 }
 
 function UnprefixedBoardRedirect() {
+  const { t } = useLocale();
   const location = useLocation();
   const { companies, selectedCompany, loading } = useCompany();
 
   if (loading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("common.loading")}</div>;
   }
 
   const targetCompany = selectedCompany ?? companies[0] ?? null;
@@ -177,6 +183,7 @@ function UnprefixedBoardRedirect() {
 }
 
 function NoCompaniesStartPage({ autoOpen = true }: { autoOpen?: boolean }) {
+  const { t } = useLocale();
   const { openOnboarding } = useDialog();
   const opened = useRef(false);
 
@@ -190,12 +197,12 @@ function NoCompaniesStartPage({ autoOpen = true }: { autoOpen?: boolean }) {
   return (
     <div className="mx-auto max-w-xl py-10">
       <div className="rounded-lg border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold">Create your first company</h1>
+        <h1 className="text-xl font-semibold">{t("app.createFirstCompany")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Get started by creating a company.
+          {t("app.createFirstCompanyDetail")}
         </p>
         <div className="mt-4">
-          <Button onClick={() => openOnboarding()}>New Company</Button>
+          <Button onClick={() => openOnboarding()}>{t("app.newCompany")}</Button>
         </div>
       </div>
     </div>
@@ -205,6 +212,7 @@ function NoCompaniesStartPage({ autoOpen = true }: { autoOpen?: boolean }) {
 export function App() {
   return (
     <>
+      <GlobalPreferences />
       <Routes>
         <Route path="auth" element={<AuthPage />} />
         <Route path="board-claim/:token" element={<BoardClaimPage />} />

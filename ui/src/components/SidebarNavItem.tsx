@@ -1,6 +1,7 @@
 import { NavLink } from "@/lib/router";
 import { cn } from "../lib/utils";
 import { useSidebar } from "../context/SidebarContext";
+import { useLocale } from "../context/LocaleContext";
 import type { LucideIcon } from "lucide-react";
 
 interface SidebarNavItemProps {
@@ -27,6 +28,8 @@ export function SidebarNavItem({
   liveCount,
 }: SidebarNavItemProps) {
   const { isMobile, setSidebarOpen } = useSidebar();
+  const { translateText } = useLocale();
+  const localizedLabel = translateText(label);
 
   return (
     <NavLink
@@ -46,25 +49,27 @@ export function SidebarNavItem({
       <span className="relative shrink-0">
         <Icon className="h-4 w-4" />
         {alert && (
-          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500 shadow-[0_0_0_2px_hsl(var(--background))]" />
+          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--dot-error)] shadow-[0_0_0_2px_hsl(var(--background))]" />
         )}
       </span>
-      <span className="flex-1 truncate">{label}</span>
+      <span className="flex-1 truncate">{localizedLabel}</span>
       {liveCount != null && liveCount > 0 && (
         <span className="ml-auto flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--dot-info)] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--status-blue-fg)]" />
           </span>
-          <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">{liveCount} live</span>
+          <span className="text-[11px] font-medium text-[var(--status-blue-fg)]">
+            {liveCount} {translateText("live")}
+          </span>
         </span>
       )}
       {badge != null && badge > 0 && (
         <span
           className={cn(
-            "ml-auto rounded-full px-1.5 py-0.5 text-xs leading-none",
+            "ml-auto rounded-sm px-1.5 py-0.5 text-xs leading-none",
             badgeTone === "danger"
-              ? "bg-red-600/90 text-red-50"
+              ? "bg-[var(--dot-error)] text-white"
               : "bg-primary text-primary-foreground",
           )}
         >

@@ -24,7 +24,7 @@ Paperclip's UI is a professional-grade control plane — dense, keyboard-driven,
 - **Dense but scannable.** Maximum information without clicks to reveal. Whitespace separates, not pads.
 - **Keyboard-first.** Global shortcuts (Cmd+K, C, [, ]). Power users rarely touch the mouse.
 - **Contextual, not modal.** Inline editing over dialog boxes. Dropdowns over page navigations.
-- **Dark theme default.** Neutral grays (OKLCH), not pure black. Accent colors for status/priority only. Text is the primary visual element.
+- **Dark theme default.** Neutral grays, not pure black. Accent colors for status/priority only. Text is the primary visual element.
 - **Component-driven.** Prefer reusable components that capture style conventions. Build at the right abstraction — not too granular, not too monolithic.
 
 ---
@@ -32,7 +32,7 @@ Paperclip's UI is a professional-grade control plane — dense, keyboard-driven,
 ## 2. Tech Stack
 
 - **React 19** + **TypeScript** + **Vite**
-- **Tailwind CSS v4** with CSS variables (OKLCH color space)
+- **Tailwind CSS v4** with CSS variables
 - **shadcn/ui** (new-york style, neutral base, CSS variables enabled)
 - **Radix UI** primitives (accessibility, focus management)
 - **Lucide React** icons (16px nav, 14px inline)
@@ -45,35 +45,26 @@ Config: `ui/components.json` (aliases: `@/components`, `@/components/ui`, `@/lib
 
 ## 3. Design Tokens
 
-All tokens defined as CSS variables in `ui/src/index.css`. Both light and dark themes use OKLCH.
+All tokens defined as CSS variables in `ui/src/index.css`.
 
 ### Colors
 
-Use semantic token names, never raw color values:
+**All brand colors MUST use CSS variables. Never use Tailwind default color classes (e.g., `blue-500`, `gray-700`).**
 
-| Token | Usage |
-|-------|-------|
-| `--background` / `--foreground` | Page background and primary text |
-| `--card` / `--card-foreground` | Card surfaces |
-| `--primary` / `--primary-foreground` | Primary actions, emphasis |
-| `--secondary` / `--secondary-foreground` | Secondary surfaces |
-| `--muted` / `--muted-foreground` | Subdued text, labels |
-| `--accent` / `--accent-foreground` | Hover states, active nav items |
-| `--destructive` | Destructive actions |
-| `--border` | All borders |
-| `--ring` | Focus rings |
-| `--sidebar-*` | Sidebar-specific variants |
-| `--chart-1` through `--chart-5` | Data visualization |
+Tailwind usage pattern: `bg-[var(--bg-base)]`, `text-[var(--text-primary)]`, `border-[var(--border-default)]`
+
+Brand color: `#1738BD` — always reference via CSS variable (e.g., `var(--brand-primary)`).
+
+> ⚠️ CSS variable definitions TBD — update `ui/src/index.css` when color tokens are finalized.
 
 ### Radius
 
-Single `--radius` variable (0.625rem) with derived sizes:
-
-- `rounded-sm` — small inputs, pills
+- `rounded-sm` — small inputs, chips
 - `rounded-md` — buttons, inputs, small components
 - `rounded-lg` — cards, dialogs
 - `rounded-xl` — card containers, large components
-- `rounded-full` — badges, avatars, status dots
+
+**Do NOT use `rounded-full` uniformly across all elements.** Use only when the shape is intentionally circular (e.g., avatar, status dot).
 
 ### Shadows
 
@@ -81,7 +72,19 @@ Minimal shadows: `shadow-xs` (outline buttons), `shadow-sm` (cards). No heavy sh
 
 ---
 
-## 4. Typography Scale
+## 4. Typography
+
+Three font families. All must be loaded via Google Fonts or self-hosted.
+
+| Family | Use | Weights |
+|--------|-----|---------|
+| **DM Sans** | English text, numbers, UI labels | 400, 500, 600, 700 |
+| **Noto Sans JP** | Japanese text | 400, 500, 700 |
+| **JetBrains Mono** | Monospace: code, identifiers, logs | 400, 500 |
+
+**Prohibited fonts:** Inter, Roboto, Arial — never use these.
+
+### Typography Scale
 
 Use these exact patterns — do not invent new ones:
 
@@ -89,18 +92,28 @@ Use these exact patterns — do not invent new ones:
 |---------|---------|-------|
 | Page title | `text-xl font-bold` | Top of pages |
 | Section title | `text-lg font-semibold` | Major sections |
-| Section heading | `text-sm font-semibold text-muted-foreground uppercase tracking-wide` | Section headers in design guide, sidebar |
+| Section heading | `text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide` | Section headers in sidebar |
 | Card title | `text-sm font-medium` or `text-sm font-semibold` | Card headers, list item titles |
 | Body | `text-sm` | Default body text |
-| Muted | `text-sm text-muted-foreground` | Descriptions, secondary text |
-| Tiny label | `text-xs text-muted-foreground` | Metadata, timestamps, property labels |
-| Mono identifier | `text-xs font-mono text-muted-foreground` | Issue keys (PAP-001), CSS vars |
+| Muted | `text-sm text-[var(--text-secondary)]` | Descriptions, secondary text |
+| Tiny label | `text-xs text-[var(--text-tertiary)]` | Metadata, timestamps, property labels |
+| Mono identifier | `text-xs font-mono text-[var(--text-tertiary)]` | Issue keys (PAP-001), CSS vars |
 | Large stat | `text-2xl font-bold` | Dashboard metric values |
 | Code/log | `font-mono text-xs` | Log output, code snippets |
 
 ---
 
-## 5. Status & Priority Systems
+## 5. Spacing
+
+**4px grid only.** Use only these values: `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96px`
+
+In Tailwind: `p-1` (4px), `p-2` (8px), `p-3` (12px), `p-4` (16px), `p-6` (24px), `p-8` (32px), `p-12` (48px), `p-16` (64px), `p-24` (96px)
+
+Do not use odd spacing values (e.g., `p-5`, `p-7`, `p-10`, `p-11`).
+
+---
+
+## 6. Status & Priority Systems
 
 ### Status Colors (consistent across all entities)
 
@@ -118,6 +131,8 @@ Defined in `StatusBadge.tsx` and `StatusIcon.tsx`:
 | in_progress | Indigo | Issues |
 | in_review | Violet | Issues |
 
+All status colors must use CSS variables — never hardcode hex or Tailwind default colors.
+
 ### Priority Icons
 
 Defined in `PriorityIcon.tsx`: critical (red/AlertTriangle), high (orange/ArrowUp), medium (yellow/Minus), low (blue/ArrowDown).
@@ -128,7 +143,7 @@ Inline colored dots: running (cyan, animate-pulse), active (green), paused (yell
 
 ---
 
-## 6. Component Hierarchy
+## 7. Component Hierarchy
 
 Three tiers:
 
@@ -152,132 +167,31 @@ Do NOT create a component for:
 
 ---
 
-## 7. Composition Patterns
+## 8. Layout System
 
-These patterns describe how components work together. They may not be their own component, but they must be used consistently across the app.
+Four-zone layout:
 
-### Entity Row with Status + Priority
-
-The standard list item for issues and similar entities:
-
-```tsx
-<EntityRow
-  leading={<><StatusIcon status="in_progress" /><PriorityIcon priority="high" /></>}
-  identifier="PAP-001"
-  title="Implement authentication flow"
-  subtitle="Assigned to Agent Alpha"
-  trailing={<StatusBadge status="in_progress" />}
-  onClick={() => {}}
-/>
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Top nav (h-14 / 56px, sticky)                               │
+├──────────┬──────────────────────────────┬────────────────────┤
+│ Sidebar  │  Main content (flex-1)       │  Right pane        │
+│ (240px)  │                              │  (320px, optional) │
+│  fixed   │                              │  collapsible       │
+└──────────┴──────────────────────────────┴────────────────────┘
 ```
 
-Leading slot always: StatusIcon first, then PriorityIcon. Trailing slot: StatusBadge or timestamp.
-
-### Grouped List
-
-Issues grouped by status header + entity rows:
-
-```tsx
-<div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-t-md">
-  <StatusIcon status="in_progress" />
-  <span className="text-sm font-medium">In Progress</span>
-  <span className="text-xs text-muted-foreground ml-1">2</span>
-</div>
-<div className="border border-border rounded-b-md">
-  <EntityRow ... />
-  <EntityRow ... />
-</div>
-```
-
-### Property Row
-
-Key-value pairs in properties panels:
-
-```tsx
-<div className="flex items-center justify-between py-1.5">
-  <span className="text-xs text-muted-foreground">Status</span>
-  <StatusBadge status="active" />
-</div>
-```
-
-Label is always `text-xs text-muted-foreground`, value on the right. Wrap in a container with `space-y-1`.
-
-### Metric Card Grid
-
-Dashboard metrics in a responsive grid:
-
-```tsx
-<div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-  <MetricCard icon={Bot} value={12} label="Active Agents" description="+3 this week" />
-  ...
-</div>
-```
-
-### Progress Bar (Budget)
-
-Color by threshold: green (<60%), yellow (60-85%), red (>85%):
-
-```tsx
-<div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-  <div className="h-full rounded-full bg-green-400" style={{ width: `${pct}%` }} />
-</div>
-```
-
-### Comment Thread
-
-Author header (name + timestamp) then body, in bordered cards with `space-y-3`. Add comment textarea + button below.
-
-### Cost Table
-
-Standard `<table>` with `text-xs`, header row with `bg-accent/20`, `font-mono` for numeric values.
-
-### Log Viewer
-
-`bg-neutral-950 rounded-lg p-3 font-mono text-xs` container. Color lines by level: default (foreground), WARN (yellow-400), ERROR (red-400), SYS (blue-300). Include live indicator dot when streaming.
+- **Top nav:** `h-14` (56px), `sticky top-0`, above all content
+- **Sidebar:** `w-60` (240px), fixed width, left navigation
+- **Main content:** `flex-1`, scrollable
+- **Right pane:** `w-80` (320px), shown on detail views, collapsible
 
 ---
 
-## 8. Interactive Patterns
+## 9. Logo
 
-### Hover States
-
-- Entity rows: `hover:bg-accent/50`
-- Nav items: `hover:bg-accent/50 hover:text-accent-foreground`
-- Active nav: `bg-accent text-accent-foreground`
-
-### Focus
-
-`focus-visible:ring-ring focus-visible:ring-[3px]` — standard Tailwind focus-visible ring.
-
-### Disabled
-
-`disabled:opacity-50 disabled:pointer-events-none`
-
-### Inline Editing
-
-Use `InlineEditor` component — click text to edit, Enter saves, Escape cancels.
-
-### Popover Selectors
-
-StatusIcon and PriorityIcon use Radix Popover for inline selection. Follow this pattern for any clickable property that opens a picker.
-
----
-
-## 9. Layout System
-
-Three-zone layout defined in `Layout.tsx`:
-
-```
-┌──────────┬──────────────────────────────┬──────────────────────┐
-│ Sidebar  │  Breadcrumb bar              │                      │
-│ (w-60)   ├──────────────────────────────┤  Properties panel    │
-│          │  Main content (flex-1)       │  (w-80, optional)    │
-└──────────┴──────────────────────────────┴──────────────────────┘
-```
-
-- Sidebar: `w-60`, collapsible, contains CompanySwitcher + SidebarSections
-- Properties panel: `w-80`, shown on detail views, hidden on lists
-- Main content: scrollable, `flex-1`
+Hexagonal grid pattern — 6 hexagons arranged in a pyramid shape.
+Brand color: `#1738BD` (always use via CSS variable).
 
 ---
 
@@ -339,13 +253,27 @@ All components use `cn()` from `@/lib/utils` for className merging. All componen
 
 ---
 
-## 13. Common Mistakes to Avoid
+## 13. Hard Rules
+
+- **Monaco / CodeMirror エディタは禁止** — コードエディタが必要な場合は代替手段を検討すること
+- **Inter / Roboto / Arial フォント禁止** — DM Sans / Noto Sans JP / JetBrains Mono のみ使用
+- **`rounded-full` の一律使用禁止** — 意図的に円形にする場合（アバター、ステータスドット）のみ使用
+- **すべてのブランドカラーは CSS 変数を使用** — `blue-500` などの Tailwind デフォルト色クラスは使わない
+- **スペーシングは 4px グリッドのみ** — `p-5`, `p-7`, `p-10` などは使用禁止
+- **Tailwind でカラーを指定する場合:** `bg-[var(--bg-base)]`, `text-[var(--text-primary)]` の形式を使用
+
+---
+
+## 14. Common Mistakes to Avoid
 
 - Using raw hex/rgb colors instead of CSS variable tokens
+- Using Tailwind default color classes (`blue-500`, `gray-700`, etc.) instead of CSS variables
 - Creating ad-hoc typography styles instead of using the established scale
+- Using Inter, Roboto, or Arial fonts
+- Using `rounded-full` on non-circular elements
 - Hardcoding status colors instead of using StatusBadge/StatusIcon
 - Building one-off styled elements when a reusable component exists
 - Adding components without updating the design guide page
 - Using `shadow-md` or heavier — keep shadows minimal (xs, sm only)
-- Using `rounded-2xl` or larger — max is `rounded-xl` (except `rounded-full` for pills)
-- Forgetting dark mode — always use semantic tokens, never hardcode light/dark values
+- Using non-4px spacing values
+- Forgetting dark mode — always use semantic CSS variable tokens

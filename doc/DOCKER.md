@@ -1,6 +1,6 @@
 # Docker Quickstart
 
-Run Paperclip in Docker without installing Node or pnpm locally.
+Run Not a Company in Docker without installing Node or pnpm locally.
 
 ## One-liner (build + run)
 
@@ -46,7 +46,7 @@ If you change host port or use a non-local domain, set `PAPERCLIP_PUBLIC_URL` to
 
 ## Authenticated Compose (Single Public URL)
 
-For authenticated deployments, set one canonical public URL and let Paperclip derive auth/callback defaults:
+For authenticated deployments, set one canonical public URL and let Not a Company derive auth/callback defaults:
 
 ```yaml
 services:
@@ -91,7 +91,7 @@ docker run --name paperclip \
 Notes:
 
 - Without API keys, the app still runs normally.
-- Adapter environment checks in Paperclip will surface missing auth/CLI prerequisites.
+- Adapter environment checks in Not a Company will surface missing auth/CLI prerequisites.
 
 ## Onboard Smoke Test (Ubuntu + npm only)
 
@@ -121,6 +121,6 @@ Notes:
 - Persistent data is mounted at `./data/docker-onboard-smoke` by default.
 - Container runtime user id defaults to your local `id -u` so the mounted data dir stays writable while avoiding root runtime.
 - Smoke script defaults to `authenticated/private` mode so `HOST=0.0.0.0` can be exposed to the host.
-- Smoke script defaults host port to `3131` to avoid conflicts with local Paperclip on `3100`.
+- Smoke script defaults host port to `3131` to avoid conflicts with local Not a Company on `3100`.
 - Run the script in the foreground to watch the onboarding flow; stop with `Ctrl+C` after validation.
 - The image definition is in `Dockerfile.onboard-smoke`.

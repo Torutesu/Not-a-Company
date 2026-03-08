@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document defines the V1 design for a Paperclip adapter that integrates with
+This document defines the V1 design for a Not a Company adapter that integrates with
 Cursor Background Agents via the Cursor REST API.
 
 Primary references:
@@ -17,7 +17,7 @@ It is a remote orchestration adapter with:
 1. launch/follow-up over HTTP
 2. webhook-driven status updates when possible
 3. polling fallback for reliability
-4. synthesized stdout events for Paperclip UI/CLI
+4. synthesized stdout events for Not a Company UI/CLI
 
 ## Key V1 Decisions
 
@@ -25,9 +25,9 @@ It is a remote orchestration adapter with:
 2. **Callback URL** must be publicly reachable by Cursor VMs:
    - local: Tailscale URL
    - prod: public server URL
-3. **Agent callback auth to Paperclip** uses a bootstrap exchange flow (no long-lived Paperclip key in prompt).
+3. **Agent callback auth to Not a Company** uses a bootstrap exchange flow (no long-lived Not a Company key in prompt).
 4. **Webhooks are V1**, polling remains fallback.
-5. **Skill delivery** is fetch-on-demand from Paperclip endpoints, not full SKILL.md prompt injection.
+5. **Skill delivery** is fetch-on-demand from Not a Company endpoints, not full SKILL.md prompt injection.
 
 ---
 
@@ -164,7 +164,7 @@ Use `adapterConfig.env` so secret references are supported by existing secret-re
 
 ---
 
-## Paperclip Callback + Auth Flow (V1)
+## Not a Company Callback + Auth Flow (V1)
 
 Cursor agents run remotely, so we cannot inject local env like `PAPERCLIP_API_KEY`.
 
@@ -179,11 +179,11 @@ If empty, fail `testEnvironment` and runtime execution with a clear error.
 
 ### Bootstrap Exchange
 
-Goal: avoid putting long-lived Paperclip credentials in prompt text.
+Goal: avoid putting long-lived Not a Company credentials in prompt text.
 
 Flow:
 
-1. Before launch/follow-up, Paperclip mints a one-time bootstrap token bound to:
+1. Before launch/follow-up, Not a Company mints a one-time bootstrap token bound to:
    - `agentId`
    - `companyId`
    - `runId`
@@ -194,8 +194,8 @@ Flow:
    - bootstrap token
 3. Cursor agent calls:
    - `POST /api/agent-auth/exchange`
-4. Paperclip validates bootstrap token and returns a run-scoped bearer JWT.
-5. Cursor agent uses returned bearer token for all Paperclip API calls.
+4. Not a Company validates bootstrap token and returns a run-scoped bearer JWT.
+5. Cursor agent uses returned bearer token for all Not a Company API calls.
 
 This keeps long-lived keys out of prompt and supports clean revocation by TTL.
 
@@ -207,7 +207,7 @@ Do not inline full SKILL.md content into the prompt.
 
 Instead:
 
-1. Prompt includes a compact instruction to fetch skills from Paperclip.
+1. Prompt includes a compact instruction to fetch skills from Not a Company.
 2. After auth exchange, agent fetches:
    - `GET /api/skills/index`
    - `GET /api/skills/paperclip`
@@ -240,7 +240,7 @@ Reuse only when repository matches.
 
 Render template as usual, then append a compact callback block:
 
-- public Paperclip URL
+- public Not a Company URL
 - bootstrap exchange endpoint
 - bootstrap token
 - skill index endpoint
@@ -293,7 +293,7 @@ Responsibilities:
 1. Verify HMAC signature from `X-Webhook-Signature`.
 2. Deduplicate by `X-Webhook-ID`.
 3. Validate event type (`statusChange`).
-4. Route by Cursor `agentId` to active Paperclip run context.
+4. Route by Cursor `agentId` to active Not a Company run context.
 5. Append `heartbeat_run_events` entries for audit/debug.
 6. Update in-memory run signal so execute loop can short-circuit quickly.
 
@@ -406,8 +406,8 @@ Current process-only cancellation maps are insufficient by themselves for Cursor
 | Execution model | local subprocess | remote API |
 | Updates | stream-json stdout | webhook + polling + synthesized stdout |
 | Session id | Claude session id | Cursor agent id |
-| Skill delivery | local skill dir injection | authenticated fetch from Paperclip skill endpoints |
-| Paperclip auth | injected local run JWT env var | bootstrap token exchange -> run JWT |
+| Skill delivery | local skill dir injection | authenticated fetch from Not a Company skill endpoints |
+| Not a Company auth | injected local run JWT env var | bootstrap token exchange -> run JWT |
 | Cancellation | OS signals | abort polling + Cursor stop endpoint |
 | Usage/cost | rich | not exposed by Cursor API |
 
@@ -425,8 +425,8 @@ Current process-only cancellation maps are insufficient by themselves for Cursor
 ## Future Enhancements
 
 1. Reduce polling frequency further when webhook reliability is high.
-2. Attach image payloads from Paperclip context.
-3. Add richer PR metadata surfacing in Paperclip UI.
+2. Attach image payloads from Not a Company context.
+3. Add richer PR metadata surfacing in Not a Company UI.
 4. Add webhook replay UI for debugging.
 
 ---

@@ -1,8 +1,8 @@
-# Paperclip Module System
+# Not a Company Module System
 
 ## Overview
 
-Paperclip's module system lets you extend the control plane with new capabilities — revenue tracking, observability, notifications, dashboards — without forking core. Modules are self-contained packages that register routes, UI pages, database tables, and lifecycle hooks.
+Not a Company's module system lets you extend the control plane with new capabilities — revenue tracking, observability, notifications, dashboards — without forking core. Modules are self-contained packages that register routes, UI pages, database tables, and lifecycle hooks.
 
 Separately, **Company Templates** are code-free data packages (agent teams, org charts, goal hierarchies) that you can import to bootstrap a new company.
 
@@ -14,7 +14,7 @@ Both are discoverable through the **Company Store**.
 
 | Concept | What it is | Contains code? |
 |---------|-----------|----------------|
-| **Module** | A package that extends Paperclip's API, UI, and data model | Yes |
+| **Module** | A package that extends Not a Company's API, UI, and data model | Yes |
 | **Company Template** | A data snapshot — agents, projects, goals, org structure | No (JSON only) |
 | **Company Store** | Registry for browsing/installing modules and templates | — |
 | **Hook** | A named event in the core that modules can subscribe to | — |
@@ -619,7 +619,7 @@ pnpm paperclipai store export                  # export current company as templ
 |--------|-------------|-----------|
 | **Audit & Compliance** | Immutable audit trail, approval workflows, spend authorization | All write hooks |
 | **Agent Logs / Replay** | Full execution traces per agent, token-by-token replay | `agent:heartbeat` |
-| **Multi-tenant** | Separate companies/orgs within one Paperclip instance | `server:started` |
+| **Multi-tenant** | Separate companies/orgs within one Not a Company instance | `server:started` |
 
 ---
 
