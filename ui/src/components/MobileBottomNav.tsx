@@ -39,7 +39,7 @@ type MobileNavItem = MobileNavLinkItem | MobileNavActionItem;
 export function MobileBottomNav({ visible }: MobileBottomNavProps) {
   const location = useLocation();
   const { selectedCompanyId } = useCompany();
-  const { openNewIssue } = useDialog();
+  const { openGlobalInstruction } = useDialog();
   const { t } = useLocale();
 
   const { data: sidebarBadges } = useQuery({
@@ -52,7 +52,7 @@ export function MobileBottomNav({ visible }: MobileBottomNavProps) {
     () => [
       { type: "link", to: "/dashboard", label: t("mobile.home"), icon: House },
       { type: "link", to: "/issues", label: t("sidebar.issues"), icon: CircleDot },
-      { type: "action", label: t("mobile.create"), icon: SquarePen, onClick: () => openNewIssue() },
+      { type: "action", label: t("mobile.create"), icon: SquarePen, onClick: () => openGlobalInstruction() },
       { type: "link", to: "/agents/all", label: t("mobile.agents"), icon: Users },
       {
         type: "link",
@@ -62,7 +62,7 @@ export function MobileBottomNav({ visible }: MobileBottomNavProps) {
         badge: sidebarBadges?.inbox,
       },
     ],
-    [openNewIssue, sidebarBadges?.inbox, t],
+    [openGlobalInstruction, sidebarBadges?.inbox, t],
   );
 
   return (

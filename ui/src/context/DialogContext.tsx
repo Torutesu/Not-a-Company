@@ -11,6 +11,18 @@ interface NewIssueDefaults {
 
 interface NewGoalDefaults {
   parentId?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  level?: string;
+}
+
+interface NewProjectDefaults {
+  name?: string;
+  description?: string;
+  status?: string;
+  goalIds?: string[];
+  targetDate?: string;
 }
 
 interface OnboardingOptions {
@@ -24,7 +36,8 @@ interface DialogContextValue {
   openNewIssue: (defaults?: NewIssueDefaults) => void;
   closeNewIssue: () => void;
   newProjectOpen: boolean;
-  openNewProject: () => void;
+  newProjectDefaults: NewProjectDefaults;
+  openNewProject: (defaults?: NewProjectDefaults) => void;
   closeNewProject: () => void;
   newGoalOpen: boolean;
   newGoalDefaults: NewGoalDefaults;
@@ -33,6 +46,9 @@ interface DialogContextValue {
   newAgentOpen: boolean;
   openNewAgent: () => void;
   closeNewAgent: () => void;
+  globalInstructionOpen: boolean;
+  openGlobalInstruction: () => void;
+  closeGlobalInstruction: () => void;
   onboardingOpen: boolean;
   onboardingOptions: OnboardingOptions;
   openOnboarding: (options?: OnboardingOptions) => void;
@@ -45,9 +61,11 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const [newIssueOpen, setNewIssueOpen] = useState(false);
   const [newIssueDefaults, setNewIssueDefaults] = useState<NewIssueDefaults>({});
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newProjectDefaults, setNewProjectDefaults] = useState<NewProjectDefaults>({});
   const [newGoalOpen, setNewGoalOpen] = useState(false);
   const [newGoalDefaults, setNewGoalDefaults] = useState<NewGoalDefaults>({});
   const [newAgentOpen, setNewAgentOpen] = useState(false);
+  const [globalInstructionOpen, setGlobalInstructionOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [onboardingOptions, setOnboardingOptions] = useState<OnboardingOptions>({});
 
@@ -61,12 +79,14 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     setNewIssueDefaults({});
   }, []);
 
-  const openNewProject = useCallback(() => {
+  const openNewProject = useCallback((defaults: NewProjectDefaults = {}) => {
+    setNewProjectDefaults(defaults);
     setNewProjectOpen(true);
   }, []);
 
   const closeNewProject = useCallback(() => {
     setNewProjectOpen(false);
+    setNewProjectDefaults({});
   }, []);
 
   const openNewGoal = useCallback((defaults: NewGoalDefaults = {}) => {
@@ -87,6 +107,14 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     setNewAgentOpen(false);
   }, []);
 
+  const openGlobalInstruction = useCallback(() => {
+    setGlobalInstructionOpen(true);
+  }, []);
+
+  const closeGlobalInstruction = useCallback(() => {
+    setGlobalInstructionOpen(false);
+  }, []);
+
   const openOnboarding = useCallback((options: OnboardingOptions = {}) => {
     setOnboardingOptions(options);
     setOnboardingOpen(true);
@@ -105,6 +133,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         openNewIssue,
         closeNewIssue,
         newProjectOpen,
+        newProjectDefaults,
         openNewProject,
         closeNewProject,
         newGoalOpen,
@@ -114,6 +143,9 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         newAgentOpen,
         openNewAgent,
         closeNewAgent,
+        globalInstructionOpen,
+        openGlobalInstruction,
+        closeGlobalInstruction,
         onboardingOpen,
         onboardingOptions,
         openOnboarding,

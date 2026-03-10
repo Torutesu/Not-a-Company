@@ -29,6 +29,7 @@ import {
   History,
   SquarePen,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import { Identity } from "./Identity";
 import { agentUrl, projectUrl } from "../lib/utils";
@@ -38,7 +39,7 @@ export function CommandPalette() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const { selectedCompanyId } = useCompany();
-  const { openNewIssue, openNewAgent } = useDialog();
+  const { openGlobalInstruction, openNewIssue, openNewAgent } = useDialog();
   const { isMobile, setSidebarOpen } = useSidebar();
   const { translateText } = useLocale();
   const searchQuery = query.trim();
@@ -112,6 +113,15 @@ export function CommandPalette() {
         <CommandEmpty>{translateText("No results found.")}</CommandEmpty>
 
         <CommandGroup heading={translateText("Actions")}>
+          <CommandItem
+            onSelect={() => {
+              setOpen(false);
+              openGlobalInstruction();
+            }}
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            {translateText("Create from instruction")}
+          </CommandItem>
           <CommandItem
             onSelect={() => {
               setOpen(false);

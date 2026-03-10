@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { GOAL_STATUSES, GOAL_LEVELS } from "@paperclipai/shared";
 import { useDialog } from "../context/DialogContext";
@@ -23,6 +23,7 @@ import {
   Layers,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { parseNaturalLanguageGoalInput } from "../lib/issue-intent";
 import { MarkdownEditor, type MarkdownEditorRef } from "./MarkdownEditor";
 import { StatusBadge } from "./StatusBadge";
 
@@ -33,6 +34,28 @@ const levelLabels: Record<string, string> = {
   task: "Task",
 };
 
+interface NaturalLanguageFeedback {
+  kind: "info" | "error";
+  text: string;
+}
+
+function normalizeLookupText(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function resolveGoalByTitle<T extends { title: string }>(items: T[], candidateTitle: string): T | null {
+  const query = normalizeLookupText(candidateTitle);
+  if (!query) return null;
+
+  const exact = items.find((item) => normalizeLookupText(item.title) === query);
+  if (exact) return exact;
+
+  const partial = items.find((item) => normalizeLookupText(item.title).includes(query));
+  if (partial) return partial;
+
+  return null;
+}
+
 export function NewGoalDialog() {
   const { newGoalOpen, newGoalDefaults, closeNewGoal } = useDialog();
   const { selectedCompanyId, selectedCompany } = useCompany();
@@ -42,6 +65,8 @@ export function NewGoalDialog() {
   const [status, setStatus] = useState("planned");
   const [level, setLevel] = useState("task");
   const [parentId, setParentId] = useState("");
+  const [naturalLanguageInput, setNaturalLanguageInput] = useState("");
+  const [naturalLanguageFeedback, setNaturalLanguageFeedback] = useState<NaturalLanguageFeedback | null>(null);
   const [expanded, setExpanded] = useState(false);
 
   const [statusOpen, setStatusOpen] = useState(false);
@@ -75,12 +100,25 @@ export function NewGoalDialog() {
     },
   });
 
+  useEffect(() => {
+    if (!newGoalOpen) return;
+    setTitle(newGoalDefaults.title ?? "");
+    setDescription(newGoalDefaults.description ?? "");
+    setStatus(newGoalDefaults.status ?? "planned");
+    setLevel(newGoalDefaults.level ?? "task");
+    setParentId(newGoalDefaults.parentId ?? "");
+    setNaturalLanguageInput("");
+    setNaturalLanguageFeedback(null);
+  }, [newGoalOpen, newGoalDefaults]);
+
   function reset() {
     setTitle("");
     setDescription("");
     setStatus("planned");
     setLevel("task");
     setParentId("");
+    setNaturalLanguageInput("");
+    setNaturalLanguageFeedback(null);
     setExpanded(false);
   }
 
@@ -100,6 +138,68 @@ export function NewGoalDialog() {
       e.preventDefault();
       handleSubmit();
     }
+  }
+
+  function applyNaturalLanguageInput() {
+    const raw = naturalLanguageInput.trim();
+    if (!raw) return;
+
+    const parsed = parseNaturalLanguageGoalInput(raw);
+    const infoMessages: string[] = [];
+    const errorMessages: string[] = [];
+    let appliedCount = 0;
+
+    if (parsed.title) {
+      setTitle(parsed.title);
+      appliedCount += 1;
+      infoMessages.push("title");
+    }
+    if (parsed.description) {
+      setDescription(parsed.description);
+      appliedCount += 1;
+      infoMessages.push("description");
+    }
+    if (parsed.status) {
+      setStatus(parsed.status);
+      appliedCount += 1;
+      infoMessages.push("status");
+    }
+    if (parsed.level) {
+      setLevel(parsed.level);
+      appliedCount += 1;
+      infoMessages.push("level");
+    }
+    if (parsed.parentGoalName) {
+      const parentGoal = resolveGoalByTitle(goals ?? [], parsed.parentGoalName);
+      if (parentGoal) {
+        setParentId(parentGoal.id);
+        appliedCount += 1;
+        infoMessages.push("parent");
+      } else {
+        errorMessages.push(`Parent goal "${parsed.parentGoalName}" was not found in this company.`);
+      }
+    }
+
+    if (appliedCount === 0) {
+      setNaturalLanguageFeedback({
+        kind: "error",
+        text: "Could not parse goal fields. Try: `Title: ...`, `Level: team`, `Status: active`, `Parent: goal name`.",
+      });
+      return;
+    }
+
+    if (errorMessages.length > 0) {
+      setNaturalLanguageFeedback({
+        kind: "error",
+        text: errorMessages.join(" "),
+      });
+      return;
+    }
+
+    setNaturalLanguageFeedback({
+      kind: "info",
+      text: `Applied ${infoMessages.join(", ")} from natural language.`,
+    });
   }
 
   const currentParent = (goals ?? []).find((g) => g.id === appliedParentId);
@@ -148,6 +248,49 @@ export function NewGoalDialog() {
               <span className="text-lg leading-none">&times;</span>
             </Button>
           </div>
+        </div>
+
+        <div className="px-4 pt-3 pb-2 border-b border-border/60 shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Natural language input</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={applyNaturalLanguageInput}
+              disabled={!naturalLanguageInput.trim()}
+            >
+              Apply
+            </Button>
+          </div>
+          <textarea
+            className="mt-2 w-full rounded-md border border-border bg-transparent px-2.5 py-2 text-sm outline-none resize-y min-h-16 placeholder:text-muted-foreground/50"
+            placeholder="e.g. 新規顧客獲得KPIの達成。レベルはteam、状態はactive、親は売上目標。"
+            value={naturalLanguageInput}
+            onChange={(event) => setNaturalLanguageInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                applyNaturalLanguageInput();
+              }
+            }}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Supports free text and labeled formats like Title/Level/Status/Parent.
+          </p>
+          {naturalLanguageFeedback && (
+            <p
+              className={cn(
+                "mt-1 text-xs",
+                naturalLanguageFeedback.kind === "error"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-muted-foreground",
+              )}
+            >
+              {naturalLanguageFeedback.text}
+            </p>
+          )}
         </div>
 
         {/* Title */}

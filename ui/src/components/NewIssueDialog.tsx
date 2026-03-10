@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { extractProviderIdWithFallback } from "../lib/model-utils";
+import { parseNaturalLanguageIssueInput } from "../lib/issue-intent";
 import { issueStatusText, issueStatusTextDefault, priorityColor, priorityColorDefault } from "../lib/status-colors";
 import { MarkdownEditor, type MarkdownEditorRef, type MentionOption } from "./MarkdownEditor";
 import { AgentIcon } from "./AgentIconPicker";
@@ -166,6 +167,28 @@ const priorities = [
   { value: "low", label: "Low", icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault },
 ];
 
+interface NaturalLanguageFeedback {
+  kind: "info" | "error";
+  text: string;
+}
+
+function normalizeLookupText(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function resolveByName<T extends { name: string }>(items: T[], candidateName: string): T | null {
+  const query = normalizeLookupText(candidateName).replace(/^@/, "");
+  if (!query) return null;
+
+  const exact = items.find((item) => normalizeLookupText(item.name) === query);
+  if (exact) return exact;
+
+  const partial = items.find((item) => normalizeLookupText(item.name).includes(query));
+  if (partial) return partial;
+
+  return null;
+}
+
 export function NewIssueDialog() {
   const { newIssueOpen, newIssueDefaults, closeNewIssue } = useDialog();
   const { companies, selectedCompanyId, selectedCompany } = useCompany();
@@ -181,6 +204,8 @@ export function NewIssueDialog() {
   const [assigneeThinkingEffort, setAssigneeThinkingEffort] = useState("");
   const [assigneeChrome, setAssigneeChrome] = useState(false);
   const [assigneeUseProjectWorkspace, setAssigneeUseProjectWorkspace] = useState(true);
+  const [naturalLanguageInput, setNaturalLanguageInput] = useState("");
+  const [naturalLanguageFeedback, setNaturalLanguageFeedback] = useState<NaturalLanguageFeedback | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [dialogCompanyId, setDialogCompanyId] = useState<string | null>(null);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -334,6 +359,8 @@ export function NewIssueDialog() {
       setAssigneeThinkingEffort("");
       setAssigneeChrome(false);
       setAssigneeUseProjectWorkspace(true);
+      setNaturalLanguageInput("");
+      setNaturalLanguageFeedback(null);
     } else if (draft && draft.title.trim()) {
       setTitle(draft.title);
       setDescription(draft.description);
@@ -345,6 +372,8 @@ export function NewIssueDialog() {
       setAssigneeThinkingEffort(draft.assigneeThinkingEffort ?? "");
       setAssigneeChrome(draft.assigneeChrome ?? false);
       setAssigneeUseProjectWorkspace(draft.assigneeUseProjectWorkspace ?? true);
+      setNaturalLanguageInput("");
+      setNaturalLanguageFeedback(null);
     } else {
       setStatus(newIssueDefaults.status ?? "todo");
       setPriority(newIssueDefaults.priority ?? "");
@@ -354,6 +383,8 @@ export function NewIssueDialog() {
       setAssigneeThinkingEffort("");
       setAssigneeChrome(false);
       setAssigneeUseProjectWorkspace(true);
+      setNaturalLanguageInput("");
+      setNaturalLanguageFeedback(null);
     }
   }, [newIssueOpen, newIssueDefaults]);
 
@@ -397,6 +428,8 @@ export function NewIssueDialog() {
     setAssigneeThinkingEffort("");
     setAssigneeChrome(false);
     setAssigneeUseProjectWorkspace(true);
+    setNaturalLanguageInput("");
+    setNaturalLanguageFeedback(null);
     setExpanded(false);
     setDialogCompanyId(null);
     setCompanyOpen(false);
@@ -460,6 +493,80 @@ export function NewIssueDialog() {
     } finally {
       if (attachInputRef.current) attachInputRef.current.value = "";
     }
+  }
+
+  function applyNaturalLanguageInput() {
+    const raw = naturalLanguageInput.trim();
+    if (!raw) return;
+
+    const parsed = parseNaturalLanguageIssueInput(raw);
+    const infoMessages: string[] = [];
+    const errorMessages: string[] = [];
+    let appliedCount = 0;
+
+    if (parsed.title) {
+      setTitle(parsed.title);
+      appliedCount += 1;
+      infoMessages.push("title");
+    }
+    if (parsed.description) {
+      setDescription(parsed.description);
+      appliedCount += 1;
+      infoMessages.push("description");
+    }
+    if (parsed.status) {
+      setStatus(parsed.status);
+      appliedCount += 1;
+      infoMessages.push("status");
+    }
+    if (parsed.priority) {
+      setPriority(parsed.priority);
+      appliedCount += 1;
+      infoMessages.push("priority");
+    }
+
+    if (parsed.assigneeName) {
+      const assignee = resolveByName((agents ?? []).filter((agent) => agent.status !== "terminated"), parsed.assigneeName);
+      if (assignee) {
+        setAssigneeId(assignee.id);
+        appliedCount += 1;
+        infoMessages.push("assignee");
+      } else {
+        errorMessages.push(`Assignee "${parsed.assigneeName}" was not found in this company.`);
+      }
+    }
+
+    if (parsed.projectName) {
+      const project = resolveByName(orderedProjects, parsed.projectName);
+      if (project) {
+        setProjectId(project.id);
+        appliedCount += 1;
+        infoMessages.push("project");
+      } else {
+        errorMessages.push(`Project "${parsed.projectName}" was not found in this company.`);
+      }
+    }
+
+    if (appliedCount === 0) {
+      setNaturalLanguageFeedback({
+        kind: "error",
+        text: "Could not parse issue fields. Try: `Title: ...`, `Priority: high`, `Assignee: name`, `Project: name`.",
+      });
+      return;
+    }
+
+    if (errorMessages.length > 0) {
+      setNaturalLanguageFeedback({
+        kind: "error",
+        text: errorMessages.join(" "),
+      });
+      return;
+    }
+
+    setNaturalLanguageFeedback({
+      kind: "info",
+      text: `Applied ${infoMessages.join(", ")} from natural language.`,
+    });
   }
 
   const hasDraft = title.trim().length > 0 || description.trim().length > 0;
@@ -629,6 +736,50 @@ export function NewIssueDialog() {
               <span className="text-lg leading-none">&times;</span>
             </Button>
           </div>
+        </div>
+
+        {/* Title */}
+        <div className="px-4 pt-3 pb-2 border-b border-border/60 shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Natural language input</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={applyNaturalLanguageInput}
+              disabled={!naturalLanguageInput.trim()}
+            >
+              Apply
+            </Button>
+          </div>
+          <textarea
+            className="mt-2 w-full rounded-md border border-border bg-transparent px-2.5 py-2 text-sm outline-none resize-y min-h-16 placeholder:text-muted-foreground/50"
+            placeholder="e.g. ログイン画面でOAuthリダイレクトが壊れているので修正。優先度は高。担当はAlice。プロジェクトはWeb App。"
+            value={naturalLanguageInput}
+            onChange={(event) => setNaturalLanguageInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                applyNaturalLanguageInput();
+              }
+            }}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Supports free text and labeled formats like Title/Priority/Assignee/Project.
+          </p>
+          {naturalLanguageFeedback && (
+            <p
+              className={cn(
+                "mt-1 text-xs",
+                naturalLanguageFeedback.kind === "error"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-muted-foreground",
+              )}
+            >
+              {naturalLanguageFeedback.text}
+            </p>
+          )}
         </div>
 
         {/* Title */}

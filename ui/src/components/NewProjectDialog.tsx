@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDialog } from "../context/DialogContext";
 import { useCompany } from "../context/CompanyContext";
@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { PROJECT_COLORS } from "@paperclipai/shared";
 import { cn } from "../lib/utils";
+import { parseNaturalLanguageProjectInput } from "../lib/issue-intent";
 import { MarkdownEditor, type MarkdownEditorRef } from "./MarkdownEditor";
 import { StatusBadge } from "./StatusBadge";
 import { ChoosePathButton } from "./PathInstructionsModal";
@@ -44,8 +45,30 @@ const projectStatuses = [
 type WorkspaceSetup = "none" | "local" | "repo" | "both";
 const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
 
+interface NaturalLanguageFeedback {
+  kind: "info" | "error";
+  text: string;
+}
+
+function normalizeLookupText(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function resolveGoalByTitle<T extends { title: string }>(items: T[], candidateTitle: string): T | null {
+  const query = normalizeLookupText(candidateTitle);
+  if (!query) return null;
+
+  const exact = items.find((item) => normalizeLookupText(item.title) === query);
+  if (exact) return exact;
+
+  const partial = items.find((item) => normalizeLookupText(item.title).includes(query));
+  if (partial) return partial;
+
+  return null;
+}
+
 export function NewProjectDialog() {
-  const { newProjectOpen, closeNewProject } = useDialog();
+  const { newProjectOpen, newProjectDefaults, closeNewProject } = useDialog();
   const { selectedCompanyId, selectedCompany } = useCompany();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
@@ -58,6 +81,8 @@ export function NewProjectDialog() {
   const [workspaceLocalPath, setWorkspaceLocalPath] = useState("");
   const [workspaceRepoUrl, setWorkspaceRepoUrl] = useState("");
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
+  const [naturalLanguageInput, setNaturalLanguageInput] = useState("");
+  const [naturalLanguageFeedback, setNaturalLanguageFeedback] = useState<NaturalLanguageFeedback | null>(null);
 
   const [statusOpen, setStatusOpen] = useState(false);
   const [goalOpen, setGoalOpen] = useState(false);
@@ -81,6 +106,17 @@ export function NewProjectDialog() {
     },
   });
 
+  useEffect(() => {
+    if (!newProjectOpen) return;
+    setName(newProjectDefaults.name ?? "");
+    setDescription(newProjectDefaults.description ?? "");
+    setStatus(newProjectDefaults.status ?? "planned");
+    setGoalIds(newProjectDefaults.goalIds ?? []);
+    setTargetDate(newProjectDefaults.targetDate ?? "");
+    setNaturalLanguageInput("");
+    setNaturalLanguageFeedback(null);
+  }, [newProjectOpen, newProjectDefaults]);
+
   function reset() {
     setName("");
     setDescription("");
@@ -92,6 +128,8 @@ export function NewProjectDialog() {
     setWorkspaceLocalPath("");
     setWorkspaceRepoUrl("");
     setWorkspaceError(null);
+    setNaturalLanguageInput("");
+    setNaturalLanguageFeedback(null);
   }
 
   const isAbsolutePath = (value: string) => value.startsWith("/") || /^[A-Za-z]:[\\/]/.test(value);
@@ -199,6 +237,75 @@ export function NewProjectDialog() {
     }
   }
 
+  function applyNaturalLanguageInput() {
+    const raw = naturalLanguageInput.trim();
+    if (!raw) return;
+
+    const parsed = parseNaturalLanguageProjectInput(raw);
+    const infoMessages: string[] = [];
+    const errorMessages: string[] = [];
+    let appliedCount = 0;
+
+    if (parsed.name) {
+      setName(parsed.name);
+      appliedCount += 1;
+      infoMessages.push("name");
+    }
+    if (parsed.description) {
+      setDescription(parsed.description);
+      appliedCount += 1;
+      infoMessages.push("description");
+    }
+    if (parsed.status) {
+      setStatus(parsed.status);
+      appliedCount += 1;
+      infoMessages.push("status");
+    }
+    if (parsed.targetDate) {
+      setTargetDate(parsed.targetDate);
+      appliedCount += 1;
+      infoMessages.push("target date");
+    }
+
+    if (parsed.goalNames.length > 0) {
+      const matchedGoalIds = new Set<string>();
+      for (const goalName of parsed.goalNames) {
+        const matched = resolveGoalByTitle(goals ?? [], goalName);
+        if (matched) {
+          matchedGoalIds.add(matched.id);
+        } else {
+          errorMessages.push(`Goal "${goalName}" was not found in this company.`);
+        }
+      }
+      if (matchedGoalIds.size > 0) {
+        setGoalIds(Array.from(matchedGoalIds));
+        appliedCount += 1;
+        infoMessages.push("goals");
+      }
+    }
+
+    if (appliedCount === 0) {
+      setNaturalLanguageFeedback({
+        kind: "error",
+        text: "Could not parse project fields. Try: `Name: ...`, `Status: in progress`, `Goals: growth, onboarding`, `Target date: 2026-03-31`.",
+      });
+      return;
+    }
+
+    if (errorMessages.length > 0) {
+      setNaturalLanguageFeedback({
+        kind: "error",
+        text: errorMessages.join(" "),
+      });
+      return;
+    }
+
+    setNaturalLanguageFeedback({
+      kind: "info",
+      text: `Applied ${infoMessages.join(", ")} from natural language.`,
+    });
+  }
+
   const selectedGoals = (goals ?? []).filter((g) => goalIds.includes(g.id));
   const availableGoals = (goals ?? []).filter((g) => !goalIds.includes(g.id));
 
@@ -246,6 +353,49 @@ export function NewProjectDialog() {
               <span className="text-lg leading-none">&times;</span>
             </Button>
           </div>
+        </div>
+
+        <div className="px-4 pt-3 pb-2 border-b border-border/60 shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Natural language input</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={applyNaturalLanguageInput}
+              disabled={!naturalLanguageInput.trim()}
+            >
+              Apply
+            </Button>
+          </div>
+          <textarea
+            className="mt-2 w-full rounded-md border border-border bg-transparent px-2.5 py-2 text-sm outline-none resize-y min-h-16 placeholder:text-muted-foreground/50"
+            placeholder="e.g. モバイル改善PJ。状態はin progress、関連goalは継続率改善、期限は2026-03-31。"
+            value={naturalLanguageInput}
+            onChange={(event) => setNaturalLanguageInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                applyNaturalLanguageInput();
+              }
+            }}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Supports free text and labeled formats like Name/Status/Goals/Target date.
+          </p>
+          {naturalLanguageFeedback && (
+            <p
+              className={cn(
+                "mt-1 text-xs",
+                naturalLanguageFeedback.kind === "error"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-muted-foreground",
+              )}
+            >
+              {naturalLanguageFeedback.text}
+            </p>
+          )}
         </div>
 
         {/* Name */}
