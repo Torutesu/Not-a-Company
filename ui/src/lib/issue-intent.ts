@@ -266,14 +266,14 @@ export function parseNaturalLanguageIssueInput(input: string): ParsedIssueIntent
 
   if (!assigneeName) {
     assigneeName = findInlineValue(raw, [
-      /(?:assignee|owner|担当(?:者)?)(?:\s*(?:is|=|:|：|は|を))?\s*[@]?"?([^,\n。.!?！？]+)"?/i,
+      /(?:assignee|owner|担当(?:者)?)(?:\s*(?:is|=|:|：|は|を))?\s*[@]?"?([^,、，;\n。.!?！？；]+)"?/i,
     ]);
     if (assigneeName) assigneeName = assigneeName.replace(/^@/, "");
   }
 
   if (!projectName) {
     projectName = findInlineValue(raw, [
-      /(?:project|プロジェクト)(?:\s*(?:is|=|:|：|は|を))?\s*"?([^,\n。.!?！？]+)"?/i,
+      /(?:project|プロジェクト)(?:\s*(?:is|=|:|：|は|を))?\s*"?([^,、，;\n。.!?！？；]+)"?/i,
     ]);
   }
 
@@ -358,7 +358,7 @@ export function parseNaturalLanguageGoalInput(input: string): ParsedGoalIntent {
 
   if (!parentGoalName) {
     parentGoalName = findInlineValue(raw, [
-      /(?:parent(?:\s+goal)?|親(?:goal|ゴール)?)(?:\s*(?:is|=|:|：|は|を))?\s*"?([^,\n。.!?！？]+)"?/i,
+      /(?:parent(?:\s+goal)?|親(?:goal|ゴール)?)(?:\s*(?:is|=|:|：|は|を))?\s*"?([^,、，;\n。.!?！？；]+)"?/i,
     ]);
   }
 
@@ -450,7 +450,7 @@ export function parseNaturalLanguageProjectInput(input: string): ParsedProjectIn
 
   if (!targetDate) {
     const inlineDate = findInlineValue(raw, [
-      /(?:target\s*date|due|deadline|期限|締切|目標日)(?:\s*(?:is|=|:|：|は|を))?\s*"?([^,\n。!?！？]+)"?/i,
+      /(?:target\s*date|due|deadline|期限|締切|目標日)(?:\s*(?:is|=|:|：|は|を))?\s*"?([^,、，;\n。!?！？；]+)"?/i,
     ]);
     if (inlineDate) {
       targetDate = canonicalizeTargetDate(inlineDate);
